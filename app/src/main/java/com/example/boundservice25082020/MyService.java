@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.os.Binder;
 import android.os.Build;
 import android.os.CountDownTimer;
 import android.os.IBinder;
@@ -21,29 +22,34 @@ public class MyService extends Service {
     Notification mNotification;
     String MY_CHANNEL = "MY_CHANNEL";
     Context mContext = null;
+    OnListenerCount mOnListenerCount;
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        return null;
+        return new MyBinder();
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
-        mNotification = createNotification(this,mCount).build();
         mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        mNotification = createNotification(this,mCount).build();
         startForeground(1 , mNotification);
         mContext = this;
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        CountDownTimer countDownTimer = new CountDownTimer(10000,1000) {
+        CountDownTimer countDownTimer = new CountDownTimer(100000,1000) {
             @Override
             public void onTick(long millisUntilFinished) {
                 mCount++;
                 mNotification = createNotification(mContext,mCount).build();
                 mNotificationManager.notify(1,mNotification);
+                if (mOnListenerCount != null){
+                    mOnListenerCount.onCount(mCount);
+                }
+
             }
 
             @Override
@@ -75,5 +81,14 @@ public class MyService extends Service {
             mNotificationManager.createNotificationChannel(notificationChannel);
         }
         return notification;
+    }
+
+    class MyBinder extends Binder {
+        MyService getService(){
+            return MyService.this;
+        }
+    }
+    public void setOnListenerCount(OnListenerCount onListenerCount){
+        this.mOnListenerCount = onListenerCount;
     }
 }
