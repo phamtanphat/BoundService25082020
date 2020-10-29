@@ -42,7 +42,7 @@ public class MyService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (mCreate == true){
+        if (mCreate){
             CountDownTimer countDownTimer = new CountDownTimer(100000,1000) {
                 @Override
                 public void onTick(long millisUntilFinished) {
