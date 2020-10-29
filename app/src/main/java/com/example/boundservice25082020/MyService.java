@@ -23,6 +23,7 @@ public class MyService extends Service {
     String MY_CHANNEL = "MY_CHANNEL";
     Context mContext = null;
     OnListenerCount mOnListenerCount;
+    boolean mCreate = false;
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
@@ -36,28 +37,32 @@ public class MyService extends Service {
         mNotification = createNotification(this,mCount).build();
         startForeground(1 , mNotification);
         mContext = this;
+        mCreate = true;
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        CountDownTimer countDownTimer = new CountDownTimer(100000,1000) {
-            @Override
-            public void onTick(long millisUntilFinished) {
-                mCount++;
-                mNotification = createNotification(mContext,mCount).build();
-                mNotificationManager.notify(1,mNotification);
-                if (mOnListenerCount != null){
-                    mOnListenerCount.onCount(mCount);
+        if (mCreate == true){
+            CountDownTimer countDownTimer = new CountDownTimer(100000,1000) {
+                @Override
+                public void onTick(long millisUntilFinished) {
+                    mCount++;
+                    mNotification = createNotification(mContext,mCount).build();
+                    mNotificationManager.notify(1,mNotification);
+                    if (mOnListenerCount != null){
+                        mOnListenerCount.onCount(mCount);
+                    }
+
                 }
 
-            }
+                @Override
+                public void onFinish() {
 
-            @Override
-            public void onFinish() {
-
-            }
-        };
-        countDownTimer.start();
+                }
+            };
+            countDownTimer.start();
+            mCreate = false;
+        }
         return START_NOT_STICKY;
     }
 
